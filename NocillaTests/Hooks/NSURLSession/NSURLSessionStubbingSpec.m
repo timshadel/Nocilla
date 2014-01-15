@@ -28,9 +28,6 @@ it(@"stubs NSURLSessionDataTask", ^{
     __block NSData *capturedData;
     NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
 
-//    configuration.protocolClasses=@[[LSHTTPStubURLProtocol class]];
-
-
     NSURL *url = [NSURL URLWithString:@"http://example.com"];
     NSURLSession *urlsession = [NSURLSession sessionWithConfiguration:configuration];
     NSURLSessionDataTask *datatask = [urlsession dataTaskWithURL:url completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {

@@ -13,28 +13,44 @@
 @implementation LSNSURLSessionHook
 
 - (void)load {
-    [self swizzleSelector:@selector(protocolClasses) formClass:[NSURLSessionConfiguration class] toClass:[self class]];
+    [self swizzleClassSelector:@selector(defaultSessionConfiguration) fromClass:[NSURLSessionConfiguration class] toClass:[self class]];
+    [self swizzleClassSelector:@selector(backgroundSessionConfiguration:) fromClass:[NSURLSessionConfiguration class] toClass:[self class]];
+    [self swizzleClassSelector:@selector(ephemeralSessionConfiguration) fromClass:[NSURLSessionConfiguration class] toClass:[self class]];
 }
 
 - (void)unload {
-    [self swizzleSelector:@selector(protocolClasses) formClass:[NSURLSessionConfiguration class] toClass:[self class]];
+    [self swizzleClassSelector:@selector(defaultSessionConfiguration) fromClass:[NSURLSessionConfiguration class] toClass:[self class]];
+    [self swizzleClassSelector:@selector(backgroundSessionConfiguration:) fromClass:[NSURLSessionConfiguration class] toClass:[self class]];
+    [self swizzleClassSelector:@selector(ephemeralSessionConfiguration) fromClass:[NSURLSessionConfiguration class] toClass:[self class]];
 }
 
-- (void)swizzleSelector:(SEL)selector formClass:(Class)original toClass:(Class)stub {
-
-    Method originalMethod = class_getInstanceMethod(original, selector);
-    Method stubMethod = class_getInstanceMethod(stub, selector);
+- (void)swizzleClassSelector:(SEL)selector fromClass:(Class)original toClass:(Class)stub {
+    
+    Method originalMethod = class_getClassMethod(original, selector);
+    Method stubMethod = class_getClassMethod(stub, selector);
     if (!originalMethod || !stubMethod) {
         [NSException raise:NSInternalInconsistencyException format:@"Couldn't load NSURLSession hook."];
     }
-    IMP result = method_setImplementation(originalMethod, method_getImplementation(stubMethod));
-//    method_exchangeImplementations(originalMethod, stubMethod);
-
-    method_setImplementation(stubMethod, result);
+    method_exchangeImplementations(originalMethod, stubMethod);
+    
 }
 
-- (NSArray *)protocolClasses {
-    return @[[LSHTTPStubURLProtocol class]];
++ (NSURLSessionConfiguration *)defaultSessionConfiguration {
+    NSURLSessionConfiguration *config = [LSNSURLSessionHook defaultSessionConfiguration];
+    config.protocolClasses = @[[LSHTTPStubURLProtocol class]];
+    return config;
+}
+
++ (NSURLSessionConfiguration *)backgroundSessionConfiguration:(NSString *)identifier {
+    NSURLSessionConfiguration *config = [LSNSURLSessionHook backgroundSessionConfiguration:identifier];
+    config.protocolClasses = @[[LSHTTPStubURLProtocol class]];
+    return config;
+}
+
++ (NSURLSessionConfiguration *)ephemeralSessionConfiguration {
+    NSURLSessionConfiguration *config = [LSNSURLSessionHook ephemeralSessionConfiguration];
+    config.protocolClasses = @[[LSHTTPStubURLProtocol class]];
+    return config;
 }
 
 
